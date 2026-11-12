@@ -3,6 +3,7 @@ import { z } from "zod";
 const environmentSchema = z.object({
   NODE_ENV: z.enum(["development", "test", "production"]).default("development"),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).default(0),
   MONGODB_URI: z.string().min(1),
   PUBLIC_APP_ORIGIN: z.url(),
   REPORTING_TIME_ZONE: z.string().default("Asia/Dhaka"),

@@ -32,16 +32,28 @@ export function createLoginRateLimiter(windowMs = 60_000, maxRequests = 5): Requ
 
   return (request, response, next) => {
     const now = Date.now();
-    const key = request.ip ?? request.socket.remoteAddress ?? "unknown";
-    const recentAttempts = (attempts.get(key) ?? []).filter((time) => now - time < windowMs);
-    if (recentAttempts.length >= maxRequests) {
+    const clientIp = request.ip ?? request.socket.remoteAddress ?? "unknown";
+    const email = typeof request.body?.email === "string"
+      ? request.body.email.trim().toLowerCase()
+      : "";
+    const keys = [`ip:${clientIp}`];
+    if (email) keys.push(`account:${email}`);
+
+    const recentAttempts = keys.map((key) => ({
+      key,
+      times: (attempts.get(key) ?? []).filter((time) => now - time < windowMs),
+    }));
+
+    if (recentAttempts.some(({ times }) => times.length >= maxRequests)) {
       response.setHeader("Retry-After", "60");
       response.status(429).json({ error: { code: "RATE_LIMITED", message: "Try again in a minute" } });
       return;
     }
 
-    recentAttempts.push(now);
-    attempts.set(key, recentAttempts);
+    for (const attempt of recentAttempts) {
+      attempt.times.push(now);
+      attempts.set(attempt.key, attempt.times);
+    }
     next();
   };
 }

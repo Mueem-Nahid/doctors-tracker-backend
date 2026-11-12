@@ -98,6 +98,6 @@ Keep the dashboard outputs bounded and verify scans and latency. A date match be
 
 ## Deployment and configuration
 
-Use `MONGODB_URI`, `PORT`, `NODE_ENV`, `PUBLIC_APP_ORIGIN`, and `REPORTING_TIME_ZONE` for the backend. Use `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` for explicit provisioning only. Use a server-only `BACKEND_ORIGIN` for the frontend rewrite and server calls. The release target must support a long-running Express process and the Next.js server with the same browser-visible origin.
+Use `MONGODB_URI`, `PORT`, `TRUST_PROXY_HOPS`, `NODE_ENV`, `PUBLIC_APP_ORIGIN`, and `REPORTING_TIME_ZONE` for the backend. Set `TRUST_PROXY_HOPS` to the number of trusted reverse proxy hops in the deployed topology. Use `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` for explicit provisioning only. Use a server-only `BACKEND_ORIGIN` for the frontend rewrite and server calls. The release target must support a long-running Express process and the Next.js server with the same browser-visible origin.
 
 Expose shallow `/health/live` and `/health/ready` endpoints to the platform. Readiness checks MongoDB connectivity. Verify `Set-Cookie`, forwarded cookies, request origins, no-store headers, and the login limiter through the deployed ingress. Monitor API latency, MongoDB query latency, 5xx rates, and login throttling. Add API replicas if request load warrants it and size the total MongoDB connection budget across replicas.

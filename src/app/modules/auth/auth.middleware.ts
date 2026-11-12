@@ -1,11 +1,9 @@
 import type { RequestHandler } from "express";
 import { authenticate } from "./auth.service.js";
 
-declare global {
-  namespace Express {
-    interface Request {
-      admin?: { _id: string; email: string; name: string; role: "admin" };
-    }
+declare module "express-serve-static-core" {
+  interface Request {
+    admin?: { _id: string; email: string; name: string; role: "admin" };
   }
 }
 
