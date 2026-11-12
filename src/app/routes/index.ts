@@ -4,6 +4,8 @@ import { authRouter } from "../modules/auth/auth.route.js";
 import { requireAdmin } from "../modules/auth/auth.middleware.js";
 import { browserMutationGuard } from "../middlewares/browserMutationGuard.js";
 import { ApiError } from "../../errors/ApiError.js";
+import { doctorRouter } from "../modules/doctors/doctor.route.js";
+import { metaRouter } from "../modules/meta/meta.route.js";
 
 export const apiRouter = Router();
 
@@ -20,6 +22,8 @@ apiRouter.get("/health/ready", (_request, response) => {
 
 apiRouter.use("/auth", authRouter);
 apiRouter.use(browserMutationGuard, requireAdmin);
+apiRouter.use("/meta", metaRouter);
+apiRouter.use("/doctors", doctorRouter);
 apiRouter.use((_request, _response, next) => {
   next(new ApiError(404, "NOT_FOUND", "API endpoint not found"));
 });
