@@ -1,28 +1,12 @@
 import type { RequestHandler } from "express";
-import { loginSchema } from "@doctor-tracker/contracts";
-import { login as loginWithCredentials, revokeSession } from "./auth.service.js";
-
-const cookieName = process.env.NODE_ENV === "production"
-  ? "__Host-doctor_tracker_session"
-  : "doctor_tracker_session";
-const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === "production",
-  sameSite: "lax" as const,
-  path: "/",
-  maxAge: 12 * 60 * 60 * 1000,
-};
+import { AuthService } from "./auth.service.js";
+import { SESSION_COOKIE_NAME, SESSION_COOKIE_OPTIONS } from "./auth.constants.js";
+import type { LoginRequest } from "./auth.interface.js";
+import { sendData } from "../../../shared/sendResponse.js";
 
 const login: RequestHandler = async (request, response) => {
-  const parsed = loginSchema.safeParse(request.body);
-  if (!parsed.success) {
-    response.status(422).json({
-      error: { code: "VALIDATION_ERROR", message: "Check the submitted fields" },
-    });
-    return;
-  }
-
-  const session = await loginWithCredentials(parsed.data.email, parsed.data.password);
+  const { body } = request.validated as LoginRequest;
+  const session = await AuthService.login(body.email, body.password);
   if (!session) {
     response.status(401).json({
       error: { code: "INVALID_CREDENTIALS", message: "Invalid email or password" },
@@ -30,23 +14,23 @@ const login: RequestHandler = async (request, response) => {
     return;
   }
 
-  response.cookie(cookieName, session.token, cookieOptions);
-  response.status(200).json({ data: session.user });
+  response.cookie(SESSION_COOKIE_NAME, session.token, SESSION_COOKIE_OPTIONS);
+  sendData(response, 200, session.user);
 };
 
 const me: RequestHandler = (request, response) => {
-  response.status(200).json({ data: request.admin });
+  sendData(response, 200, request.admin);
 };
 
 const logout: RequestHandler = async (request, response) => {
-  const token = request.cookies?.[cookieName];
-  if (token) await revokeSession(token);
+  const token = request.cookies?.[SESSION_COOKIE_NAME];
+  if (token) await AuthService.revokeSession(token);
 
-  response.clearCookie(cookieName, {
-    httpOnly: cookieOptions.httpOnly,
-    secure: cookieOptions.secure,
-    sameSite: cookieOptions.sameSite,
-    path: cookieOptions.path,
+  response.clearCookie(SESSION_COOKIE_NAME, {
+    httpOnly: SESSION_COOKIE_OPTIONS.httpOnly,
+    secure: SESSION_COOKIE_OPTIONS.secure,
+    sameSite: SESSION_COOKIE_OPTIONS.sameSite,
+    path: SESSION_COOKIE_OPTIONS.path,
   });
   response.status(204).end();
 };

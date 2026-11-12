@@ -1,5 +1,6 @@
 import type { RequestHandler } from "express";
 import { config } from "../../config/index.js";
+import { ApiError } from "../../errors/ApiError.js";
 
 export const browserMutationGuard: RequestHandler = (request, response, next) => {
   if (!["POST", "PUT", "PATCH", "DELETE"].includes(request.method)) {
@@ -20,7 +21,7 @@ export const browserMutationGuard: RequestHandler = (request, response, next) =>
   }
 
   if (requestOrigin !== config.PUBLIC_APP_ORIGIN) {
-    response.status(403).json({ error: { code: "FORBIDDEN", message: "Request origin is not allowed" } });
+    next(new ApiError(403, "FORBIDDEN", "Request origin is not allowed"));
     return;
   }
 
@@ -61,7 +62,7 @@ export function createLoginRateLimiter(windowMs = 60_000, maxRequests = 5): Requ
       const oldestAttempt = limitedAttempt.times[0] ?? now;
       const retryAfter = Math.max(1, Math.ceil((oldestAttempt + windowMs - now) / 1000));
       response.setHeader("Retry-After", String(retryAfter));
-      response.status(429).json({ error: { code: "RATE_LIMITED", message: "Too many login attempts. Try again later." } });
+      next(new ApiError(429, "RATE_LIMITED", "Too many login attempts. Try again later."));
       return;
     }
 

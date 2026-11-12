@@ -3,6 +3,8 @@ import express, { type RequestHandler } from "express";
 import { apiRouter } from "./app/routes/index.js";
 import { errorHandler } from "./app/middlewares/errorHandler.js";
 import { config } from "./config/index.js";
+import { requestId } from "./app/middlewares/requestId.js";
+import { ApiError } from "./errors/ApiError.js";
 
 const requireJsonForMutation: RequestHandler = (request, response, next) => {
   const hasBody =
@@ -24,6 +26,7 @@ export const app = express();
 
 app.disable("x-powered-by");
 app.set("trust proxy", config.TRUST_PROXY_HOPS);
+app.use(requestId);
 app.use(express.json({ limit: "32kb", type: "application/json" }));
 app.use(cookieParser());
 app.use(requireJsonForMutation);
@@ -33,10 +36,8 @@ app.use("/api/v1", (_request, response, next) => {
 });
 app.use("/api/v1", apiRouter);
 
-app.use("/api", (_request, response) => {
-  response.status(404).json({
-    error: { code: "NOT_FOUND", message: "API endpoint not found" },
-  });
+app.use("/api", (_request, _response, next) => {
+  next(new ApiError(404, "NOT_FOUND", "API endpoint not found"));
 });
 
 app.use(errorHandler);

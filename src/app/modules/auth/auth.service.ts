@@ -1,15 +1,15 @@
 import { createHash, randomBytes } from "node:crypto";
 import argon2 from "argon2";
+import { SESSION_DURATION_MS } from "./auth.constants.js";
 import { SessionModel } from "./session.model.js";
 import { UserModel } from "./user.model.js";
-
-const SESSION_DURATION_MS = 12 * 60 * 60 * 1000;
+import type { AdminIdentity, AuthenticatedSession } from "./auth.interface.js";
 
 function digestToken(token: string): string {
   return createHash("sha256").update(token).digest("hex");
 }
 
-export async function login(email: string, password: string) {
+async function login(email: string, password: string): Promise<AuthenticatedSession | null> {
   const user = await UserModel.findOne({ email: email.trim().toLowerCase(), isActive: true })
     .select("+passwordHash")
     .lean();
@@ -30,7 +30,7 @@ export async function login(email: string, password: string) {
   };
 }
 
-export async function authenticate(token: string) {
+async function authenticate(token: string): Promise<AdminIdentity | null> {
   const session = await SessionModel.findOne({ tokenDigest: digestToken(token), expiresAt: { $gt: new Date() } })
     .select("userId")
     .lean();
@@ -41,6 +41,8 @@ export async function authenticate(token: string) {
   return { _id: user._id.toString(), email: user.email, name: user.name, role: "admin" as const };
 }
 
-export async function revokeSession(token: string): Promise<void> {
+async function revokeSession(token: string): Promise<void> {
   await SessionModel.deleteOne({ tokenDigest: digestToken(token) });
 }
+
+export const AuthService = { login, authenticate, revokeSession };
