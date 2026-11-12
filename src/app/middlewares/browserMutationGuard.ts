@@ -29,9 +29,21 @@ export const browserMutationGuard: RequestHandler = (request, response, next) =>
 
 export function createLoginRateLimiter(windowMs = 60_000, maxRequests = 5): RequestHandler {
   const attempts = new Map<string, number[]>();
+  let lastCleanupAt = 0;
 
   return (request, response, next) => {
     const now = Date.now();
+
+    // A stream of unique account names or IPs must not leave expired keys in memory forever.
+    if (now - lastCleanupAt >= windowMs) {
+      for (const [key, timestamps] of attempts) {
+        const recentTimestamps = timestamps.filter((time) => now - time < windowMs);
+        if (recentTimestamps.length === 0) attempts.delete(key);
+        else attempts.set(key, recentTimestamps);
+      }
+      lastCleanupAt = now;
+    }
+
     const clientIp = request.ip ?? request.socket.remoteAddress ?? "unknown";
     const email = typeof request.body?.email === "string"
       ? request.body.email.trim().toLowerCase()
@@ -44,9 +56,12 @@ export function createLoginRateLimiter(windowMs = 60_000, maxRequests = 5): Requ
       times: (attempts.get(key) ?? []).filter((time) => now - time < windowMs),
     }));
 
-    if (recentAttempts.some(({ times }) => times.length >= maxRequests)) {
-      response.setHeader("Retry-After", "60");
-      response.status(429).json({ error: { code: "RATE_LIMITED", message: "Try again in a minute" } });
+    const limitedAttempt = recentAttempts.find(({ times }) => times.length >= maxRequests);
+    if (limitedAttempt) {
+      const oldestAttempt = limitedAttempt.times[0] ?? now;
+      const retryAfter = Math.max(1, Math.ceil((oldestAttempt + windowMs - now) / 1000));
+      response.setHeader("Retry-After", String(retryAfter));
+      response.status(429).json({ error: { code: "RATE_LIMITED", message: "Too many login attempts. Try again later." } });
       return;
     }
 
