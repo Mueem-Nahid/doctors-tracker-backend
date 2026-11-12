@@ -18,4 +18,26 @@ const remove: RequestHandler = async (request, response) => {
   response.status(204).end();
 };
 
-export const PatientController = { create, list, remove };
+const listGlobal: RequestHandler = async (request, response) => {
+  const { query } = request.validated as { query: Parameters<typeof PatientService.listGlobal>[0] };
+  sendData(response, 200, await PatientService.listGlobal(query));
+};
+const createGlobal: RequestHandler = async (request, response) => {
+  const { body } = request.validated as { body: Parameters<typeof PatientService.createGlobal>[0] };
+  sendData(response, 201, await PatientService.createGlobal(body));
+};
+const getById: RequestHandler = async (request, response) => {
+  const { params } = request.validated as { params: { id: string } };
+  sendData(response, 200, await PatientService.getById(params.id));
+};
+const update: RequestHandler = async (request, response) => {
+  const { params, body } = request.validated as { params: { id: string }; body: Parameters<typeof PatientService.update>[1] };
+  sendData(response, 200, await PatientService.update(params.id, body));
+};
+const deleteGlobal: RequestHandler = async (request, response) => {
+  const { params } = request.validated as { params: { id: string } };
+  await PatientService.deleteById(params.id);
+  response.status(204).end();
+};
+
+export const PatientController = { create, list, remove, listGlobal, createGlobal, getById, update, deleteGlobal };
