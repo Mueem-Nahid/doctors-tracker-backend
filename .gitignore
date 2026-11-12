@@ -1,1 +1,19 @@
-/food-ordering-system-backend
+# Dependencies
+/node_modules/
+
+# Local configuration and secrets
+/.env
+/.env.*
+!/.env.example
+
+# Generated output
+/dist/
+/coverage/
+/.cache/
+/*.tsbuildinfo
+
+# Local logs
+/npm-debug.log*
+
+# Reference project is kept for local inspection only
+/food-ordering-system-backend/
