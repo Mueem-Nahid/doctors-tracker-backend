@@ -1,5 +1,8 @@
 import { Router } from "express";
 import mongoose from "mongoose";
+import { authRouter } from "../modules/auth/auth.route.js";
+import { requireAdmin } from "../modules/auth/auth.middleware.js";
+import { browserMutationGuard } from "../middlewares/browserMutationGuard.js";
 
 export const apiRouter = Router();
 
@@ -13,3 +16,6 @@ apiRouter.get("/health/ready", (_request, response) => {
     data: { status: isDatabaseConnected ? "ok" : "unavailable" },
   });
 });
+
+apiRouter.use("/auth", authRouter);
+apiRouter.use(browserMutationGuard, requireAdmin);

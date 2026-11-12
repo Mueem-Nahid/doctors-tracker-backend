@@ -6,6 +6,7 @@
   "main": "dist/server.js",
   "scripts": {
     "dev": "node --env-file-if-exists=.env --import tsx --watch src/server.ts",
+    "admin:provision": "node --env-file-if-exists=.env --import tsx scripts/provisionAdmin.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit",
