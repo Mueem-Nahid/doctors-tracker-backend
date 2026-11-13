@@ -3,6 +3,7 @@ import express, { type RequestHandler } from "express";
 import { apiRouter } from "./app/routes/index.js";
 import { errorHandler } from "./app/middlewares/errorHandler.js";
 import { config } from "./config/index.js";
+import { connectToDatabase } from "./config/database.js";
 import { requestId } from "./app/middlewares/requestId.js";
 import { ApiError } from "./errors/ApiError.js";
 
@@ -27,6 +28,24 @@ export const app = express();
 app.disable("x-powered-by");
 app.set("trust proxy", config.TRUST_PROXY_HOPS);
 app.use(requestId);
+app.use(async (request, response, next) => {
+  if (request.path === "/api/v1/health/live") {
+    next();
+    return;
+  }
+
+  try {
+    await connectToDatabase();
+    next();
+  } catch (error: unknown) {
+    if (request.path === "/api/v1/health/ready") {
+      response.status(503).json({ data: { status: "unavailable" } });
+      return;
+    }
+
+    next(error);
+  }
+});
 app.use(express.json({ limit: "32kb", type: "application/json" }));
 app.use(cookieParser());
 app.use(requireJsonForMutation);

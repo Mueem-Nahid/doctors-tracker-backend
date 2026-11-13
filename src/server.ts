@@ -1,9 +1,10 @@
 import mongoose from "mongoose";
 import { app } from "./app.js";
 import { config } from "./config/index.js";
+import { connectToDatabase } from "./config/database.js";
 
 async function startServer(): Promise<void> {
-  await mongoose.connect(config.MONGODB_URI);
+  await connectToDatabase();
 
   const server = app.listen(config.PORT, () => {
     console.info(`Doctor Tracker API listening on port ${config.PORT}`);
