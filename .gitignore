@@ -8,6 +8,7 @@
 
 # Generated output
 /dist/
+/packages/contracts/dist/
 /coverage/
 /.cache/
 /*.tsbuildinfo
