@@ -41,3 +41,5 @@ app.use("/api", (_request, _response, next) => {
 });
 
 app.use(errorHandler);
+
+export default app;
