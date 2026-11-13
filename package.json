@@ -8,6 +8,7 @@
     "dev": "node --env-file-if-exists=.env --import tsx --watch src/server.ts",
     "admin:provision": "node --env-file-if-exists=.env --import tsx scripts/provisionAdmin.ts",
     "dashboard:seed": "node --env-file-if-exists=.env --import tsx scripts/seedDashboard.ts",
+    "data:clear": "node --env-file-if-exists=.env --import tsx scripts/clearData.ts",
     "indexes:deploy": "node --env-file-if-exists=.env --import tsx scripts/deployIndexes.ts",
     "query:measure": "node --env-file-if-exists=.env --import tsx scripts/measureQueries.ts",
     "test:integration": "node --import tsx --test tests/integration",

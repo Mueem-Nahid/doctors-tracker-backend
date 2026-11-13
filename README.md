@@ -59,7 +59,15 @@ npm run admin:provision -w @doctor-tracker/backend
 npm run dashboard:seed -w @doctor-tracker/backend
 ```
 
-The dashboard seed is repeatable. It creates eight marked demo doctors and 153 synthetic patients with uneven workloads and dates across the prior year. On a subsequent run it removes only those demo doctors and their assigned patients before recreating the data.
+The dashboard seed is repeatable. It creates 500 marked demo doctors and 30,000 synthetic patients with uneven workloads and deterministic pseudorandom timestamps from January 1, 2025 through the time the seed runs. The first and last patient records anchor that date range. Every demo doctor receives at least 15 patients; larger workloads taper deterministically across the directory. On a subsequent run it removes only those demo doctors and their assigned patients before recreating the data.
+
+To clear application data while preserving Admin accounts, run this destructive command with an explicit confirmation matching the database name in `MONGODB_URI`:
+
+```powershell
+npm run data:clear -w @doctor-tracker/backend -- --confirm doctor_tracker
+```
+
+Replace `doctor_tracker` with the actual database name. The command deletes all doctors, patients, and sessions in that database, leaves user/Admin accounts intact, and refuses to run when `NODE_ENV=production`. Clearing sessions signs out all Admins. It does not run automatically during setup or seeding.
 
 Run both applications from the workspace root with `npm run dev`; the API listens on port `4000` by default. To run only the API, use:
 
