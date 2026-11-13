@@ -8,10 +8,13 @@
     "dev": "node --env-file-if-exists=.env --import tsx --watch src/server.ts",
     "admin:provision": "node --env-file-if-exists=.env --import tsx scripts/provisionAdmin.ts",
     "dashboard:seed": "node --env-file-if-exists=.env --import tsx scripts/seedDashboard.ts",
+    "indexes:deploy": "node --env-file-if-exists=.env --import tsx scripts/deployIndexes.ts",
+    "query:measure": "node --env-file-if-exists=.env --import tsx scripts/measureQueries.ts",
+    "test:integration": "node --import tsx --test tests/integration",
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
-    "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "eslint src"
+    "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tools.json",
+    "lint": "eslint src scripts tests"
   },
   "dependencies": {
     "@doctor-tracker/contracts": "*",
