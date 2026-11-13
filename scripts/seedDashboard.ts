@@ -82,7 +82,7 @@ async function seedDashboard(): Promise<void> {
       const sequence = String(index + 1).padStart(3, "0");
       const specialization = specializations[index % specializations.length]!;
       const name = `Dr. Dashboard ${sequence}`;
-      const phone = `+880 1900 ${String(index + 1).padStart(6, "0")}`;
+      const phone = String(17_000_000_000 + index);
       const hospital = `Demo Hospital ${(index % 12) + 1}`;
       return {
         name,
@@ -104,7 +104,7 @@ async function seedDashboard(): Promise<void> {
     Array.from({ length: quota }, (_, patientIndex) => {
       patientNumber += 1;
       const createdAt = syntheticCreatedAt(patientNumber, totalPatients, now);
-      const phone = `+880 1800 ${String(patientNumber).padStart(6, "0")}`;
+      const phone = String(18_000_000_000 + patientNumber);
       return {
         doctorId: doctors[doctorIndex]!._id,
         name: `Dashboard Demo Patient ${String(patientNumber).padStart(5, "0")}`,

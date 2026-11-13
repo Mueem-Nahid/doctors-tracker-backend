@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { config } from "../src/config";
+import { config } from "../src/config/index.js";
 import { SessionModel } from "../src/app/modules/auth/session.model.js";
 import { DoctorModel } from "../src/app/modules/doctors/doctor.model.js";
 import { PatientModel } from "../src/app/modules/patients/patient.model.js";
