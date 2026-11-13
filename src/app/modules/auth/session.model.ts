@@ -10,4 +10,6 @@ const sessionSchema = new Schema({
 });
 
 type SessionRecord = InferSchemaType<typeof sessionSchema>;
-export const SessionModel = (models.Session as Model<SessionRecord> | undefined) ?? model<SessionRecord>("Session", sessionSchema);
+export const SessionModel =
+  (models.Session as Model<SessionRecord> | undefined) ??
+  model<SessionRecord>("Session", sessionSchema);

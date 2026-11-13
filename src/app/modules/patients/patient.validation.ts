@@ -1,4 +1,11 @@
-import { globalPatientInputSchema, globalPatientListQuerySchema, objectIdSchema, patientInputSchema, patientListQuerySchema, patientPatchSchema } from "@doctor-tracker/contracts";
+import {
+  globalPatientInputSchema,
+  globalPatientListQuerySchema,
+  objectIdSchema,
+  patientInputSchema,
+  patientListQuerySchema,
+  patientPatchSchema,
+} from "@doctor-tracker/contracts";
 import { z } from "zod";
 
 export const patientCreateValidation = z.object({
@@ -15,4 +22,7 @@ export const patientDeleteValidation = z.object({
 export const globalPatientListValidation = z.object({ query: globalPatientListQuerySchema });
 export const globalPatientCreateValidation = z.object({ body: globalPatientInputSchema });
 export const patientIdValidation = z.object({ params: z.object({ id: objectIdSchema }).strict() });
-export const patientUpdateValidation = z.object({ params: z.object({ id: objectIdSchema }).strict(), body: patientPatchSchema });
+export const patientUpdateValidation = z.object({
+  params: z.object({ id: objectIdSchema }).strict(),
+  body: patientPatchSchema,
+});

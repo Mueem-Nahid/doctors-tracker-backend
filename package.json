@@ -14,7 +14,9 @@
     "build": "tsc -p tsconfig.json",
     "start": "node --env-file-if-exists=.env dist/server.js",
     "typecheck": "tsc -p tsconfig.json --noEmit && tsc -p tsconfig.tools.json",
-    "lint": "eslint src scripts tests"
+    "lint": "eslint src scripts tests",
+    "format": "prettier --write \"src/**/*.ts\" \"scripts/**/*.ts\" \"tests/**/*.ts\"",
+    "format:check": "prettier --check \"src/**/*.ts\" \"scripts/**/*.ts\" \"tests/**/*.ts\""
   },
   "dependencies": {
     "@doctor-tracker/contracts": "*",
@@ -31,6 +33,7 @@
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
     "eslint": "^9.39.2",
+    "prettier": "^3.10.1",
     "tsx": "^4.20.6",
     "typescript": "^5.9.3"
   }

@@ -10,8 +10,9 @@ const userSchema = new Schema(
     role: { type: String, enum: ["admin"], default: "admin", required: true },
     isActive: { type: Boolean, default: true, required: true },
   },
-  { timestamps: true }
+  { timestamps: true },
 );
 
 export type UserRecord = InferSchemaType<typeof userSchema>;
-export const UserModel = (models.User as Model<UserRecord> | undefined) ?? model<UserRecord>("User", userSchema);
+export const UserModel =
+  (models.User as Model<UserRecord> | undefined) ?? model<UserRecord>("User", userSchema);

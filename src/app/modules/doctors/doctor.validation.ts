@@ -1,4 +1,8 @@
-import { doctorInputSchema, doctorListQuerySchema, objectIdSchema } from "@doctor-tracker/contracts";
+import {
+  doctorInputSchema,
+  doctorListQuerySchema,
+  objectIdSchema,
+} from "@doctor-tracker/contracts";
 import { z } from "zod";
 
 export const doctorCreateValidation = z.object({ body: doctorInputSchema });

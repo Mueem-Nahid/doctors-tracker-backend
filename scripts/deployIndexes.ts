@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import { config } from "../src/config";
+import { config } from "../src/config/index.js";
 import { DoctorModel } from "../src/app/modules/doctors/doctor.model.js";
 import { PatientModel } from "../src/app/modules/patients/patient.model.js";
 import { SessionModel } from "../src/app/modules/auth/session.model.js";
@@ -17,5 +17,10 @@ async function deployIndexes(): Promise<void> {
 }
 
 deployIndexes()
-  .catch((error: unknown) => { console.error("Index deployment failed", error); process.exitCode = 1; })
-  .finally(async () => { await mongoose.disconnect(); });
+  .catch((error: unknown) => {
+    console.error("Index deployment failed", error);
+    process.exitCode = 1;
+  })
+  .finally(async () => {
+    await mongoose.disconnect();
+  });

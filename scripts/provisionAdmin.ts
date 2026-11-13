@@ -9,7 +9,9 @@ async function provisionAdmin(): Promise<void> {
   const name = process.env.ADMIN_NAME?.trim();
 
   if (!email || !password || !name) {
-    throw new Error("Set ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_NAME in backend/.env before provisioning.");
+    throw new Error(
+      "Set ADMIN_EMAIL, ADMIN_PASSWORD, and ADMIN_NAME in backend/.env before provisioning.",
+    );
   }
 
   await mongoose.connect(config.MONGODB_URI);

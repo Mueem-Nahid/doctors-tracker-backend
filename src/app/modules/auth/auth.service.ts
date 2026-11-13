@@ -14,7 +14,9 @@ async function login(email: string, password: string): Promise<AuthenticatedSess
     .select("+passwordHash")
     .lean();
 
-  const isValid = user ? await argon2.verify(user.passwordHash, password).catch(() => false) : false;
+  const isValid = user
+    ? await argon2.verify(user.passwordHash, password).catch(() => false)
+    : false;
   if (!user || !isValid) return null;
 
   const token = randomBytes(32).toString("base64url");
@@ -31,12 +33,17 @@ async function login(email: string, password: string): Promise<AuthenticatedSess
 }
 
 async function authenticate(token: string): Promise<AdminIdentity | null> {
-  const session = await SessionModel.findOne({ tokenDigest: digestToken(token), expiresAt: { $gt: new Date() } })
+  const session = await SessionModel.findOne({
+    tokenDigest: digestToken(token),
+    expiresAt: { $gt: new Date() },
+  })
     .select("userId")
     .lean();
   if (!session) return null;
 
-  const user = await UserModel.findOne({ _id: session.userId, isActive: true }).select("email name role").lean();
+  const user = await UserModel.findOne({ _id: session.userId, isActive: true })
+    .select("email name role")
+    .lean();
   if (!user) return null;
   return { _id: user._id.toString(), email: user.email, name: user.name, role: "admin" as const };
 }

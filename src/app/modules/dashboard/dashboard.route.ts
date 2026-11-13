@@ -4,4 +4,8 @@ import { DashboardController } from "./dashboard.controller.js";
 import { dashboardSummaryValidation } from "./dashboard.validation.js";
 
 export const dashboardRouter = Router();
-dashboardRouter.get("/summary", validateRequest(dashboardSummaryValidation), DashboardController.summary);
+dashboardRouter.get(
+  "/summary",
+  validateRequest(dashboardSummaryValidation),
+  DashboardController.summary,
+);

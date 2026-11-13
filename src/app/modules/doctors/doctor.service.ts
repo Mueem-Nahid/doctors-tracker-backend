@@ -14,7 +14,9 @@ async function create(input: DoctorInput) {
     return { ...doctor, _id: doctor._id.toString(), patientCount: 0 };
   } catch (error) {
     if (typeof error === "object" && error !== null && "code" in error && error.code === 11000) {
-      throw new ApiError(409, "CONFLICT", "A doctor with this email already exists", { email: "Email already in use" });
+      throw new ApiError(409, "CONFLICT", "A doctor with this email already exists", {
+        email: "Email already in use",
+      });
     }
     throw error;
   }
@@ -33,7 +35,8 @@ async function getById(id: string) {
 }
 
 async function assertExists(id: string) {
-  if (!await DoctorRepository.findById(id)) throw new ApiError(404, "NOT_FOUND", "Doctor not found");
+  if (!(await DoctorRepository.findById(id)))
+    throw new ApiError(404, "NOT_FOUND", "Doctor not found");
 }
 
 async function filterOptions() {

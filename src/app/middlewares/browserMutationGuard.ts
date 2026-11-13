@@ -46,9 +46,8 @@ export function createLoginRateLimiter(windowMs = 60_000, maxRequests = 5): Requ
     }
 
     const clientIp = request.ip ?? request.socket.remoteAddress ?? "unknown";
-    const email = typeof request.body?.email === "string"
-      ? request.body.email.trim().toLowerCase()
-      : "";
+    const email =
+      typeof request.body?.email === "string" ? request.body.email.trim().toLowerCase() : "";
     const keys = [`ip:${clientIp}`];
     if (email) keys.push(`account:${email}`);
 

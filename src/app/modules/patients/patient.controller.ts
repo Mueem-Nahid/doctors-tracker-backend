@@ -3,12 +3,18 @@ import { sendData } from "../../../shared/sendResponse.js";
 import { PatientService } from "./patient.service.js";
 
 const create: RequestHandler = async (request, response) => {
-  const { params, body } = request.validated as { params: { id: string }; body: Parameters<typeof PatientService.createForDoctor>[1] };
+  const { params, body } = request.validated as {
+    params: { id: string };
+    body: Parameters<typeof PatientService.createForDoctor>[1];
+  };
   sendData(response, 201, await PatientService.createForDoctor(params.id, body));
 };
 
 const list: RequestHandler = async (request, response) => {
-  const { params, query } = request.validated as { params: { id: string }; query: Parameters<typeof PatientService.listForDoctor>[1] };
+  const { params, query } = request.validated as {
+    params: { id: string };
+    query: Parameters<typeof PatientService.listForDoctor>[1];
+  };
   sendData(response, 200, await PatientService.listForDoctor(params.id, query));
 };
 
@@ -31,7 +37,10 @@ const getById: RequestHandler = async (request, response) => {
   sendData(response, 200, await PatientService.getById(params.id));
 };
 const update: RequestHandler = async (request, response) => {
-  const { params, body } = request.validated as { params: { id: string }; body: Parameters<typeof PatientService.update>[1] };
+  const { params, body } = request.validated as {
+    params: { id: string };
+    body: Parameters<typeof PatientService.update>[1];
+  };
   sendData(response, 200, await PatientService.update(params.id, body));
 };
 const deleteGlobal: RequestHandler = async (request, response) => {
@@ -40,4 +49,13 @@ const deleteGlobal: RequestHandler = async (request, response) => {
   response.status(204).end();
 };
 
-export const PatientController = { create, list, remove, listGlobal, createGlobal, getById, update, deleteGlobal };
+export const PatientController = {
+  create,
+  list,
+  remove,
+  listGlobal,
+  createGlobal,
+  getById,
+  update,
+  deleteGlobal,
+};
