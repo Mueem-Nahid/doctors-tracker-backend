@@ -7,6 +7,7 @@ import { ApiError } from "../../errors/ApiError.js";
 import { doctorRouter } from "../modules/doctors/doctor.route.js";
 import { metaRouter } from "../modules/meta/meta.route.js";
 import { globalPatientRouter } from "../modules/patients/patient.route.js";
+import { dashboardRouter } from "../modules/dashboard/dashboard.route.js";
 
 export const apiRouter = Router();
 
@@ -26,6 +27,7 @@ apiRouter.use(browserMutationGuard, requireAdmin);
 apiRouter.use("/meta", metaRouter);
 apiRouter.use("/doctors", doctorRouter);
 apiRouter.use("/patients", globalPatientRouter);
+apiRouter.use("/dashboard", dashboardRouter);
 apiRouter.use((_request, _response, next) => {
   next(new ApiError(404, "NOT_FOUND", "API endpoint not found"));
 });
