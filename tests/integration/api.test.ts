@@ -163,13 +163,39 @@ test(
       assert.equal(createResponse.status, 201);
       const patient = ((await createResponse.json()) as { data: { _id: string } }).data;
       const listResponse = await fetch(
-        `${base}/patients?doctorId=${doctor._id}&condition=Diabetes&status=Active`,
+        `${base}/patients?doctorId=${doctor._id}&condition=Diabetes&status=Active&q=TEST%20PAT`,
         { headers: authHeaders },
       );
       assert.equal(listResponse.status, 200);
-      const list = ((await listResponse.json()) as { data: Array<Record<string, unknown>> }).data;
+      const { data: list, meta: listMeta } = (
+        (await listResponse.json()) as {
+          data: { data: Array<Record<string, unknown>>; meta: { total: number } };
+        }
+      ).data;
       assert.equal(list.length, 1);
+      assert.equal(listMeta.total, 1);
       assert.equal("notes" in list[0]!, false, "List rows must not include notes");
+
+      const deepPage = await fetch(`${base}/patients?page=3000&pageSize=10`, {
+        headers: authHeaders,
+      });
+      assert.equal(deepPage.status, 200);
+      assert.deepEqual(await deepPage.json(), {
+        data: { data: [], meta: { page: 3000, pageSize: 10, total: 1, pageCount: 1 } },
+      });
+
+      const doctorsByLoad = await fetch(`${base}/doctors?sort=patients.desc`, {
+        headers: authHeaders,
+      });
+      assert.equal(doctorsByLoad.status, 200);
+      const load = (await doctorsByLoad.json()) as {
+        data: { data: Array<{ _id: string; patientCount: number }> };
+      };
+      assert.equal(load.data.data[0]?._id, doctor._id);
+      assert.deepEqual(
+        load.data.data.map(({ patientCount }) => patientCount),
+        [1, 0, 0],
+      );
 
       const wrongScopeDelete = await fetch(
         `${base}/doctors/${secondDoctor._id}/patients/${patient._id}`,
@@ -228,7 +254,8 @@ test(
       const finalPage = await fetch(`${base}/patients?page=1&pageSize=10`, {
         headers: authHeaders,
       });
-      assert.equal(((await finalPage.json()) as { data: unknown[] }).data.length, 0);
+      assert.equal(finalPage.status, 200);
+      assert.equal(((await finalPage.json()) as { data: { data: unknown[] } }).data.data.length, 0);
       const logout = await fetch(`${base}/auth/logout`, { method: "POST", headers: authHeaders });
       assert.equal(logout.status, 204);
       const revokedSession = await fetch(`${base}/doctors`, { headers: authHeaders });

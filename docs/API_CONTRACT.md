@@ -1,6 +1,6 @@
 # Doctor Tracker REST API contract
 
-[Backend architecture](ARCHITECTURE.md) · [Frontend implementation plan](../../frontend/docs/IMPLEMENTATION_PLAN.md)
+[Backend architecture](ARCHITECTURE.md) · [Frontend implementation plan](https://github.com/Mueem-Nahid/doctors-tracker-frontend/blob/main/docs/IMPLEMENTATION_PLAN.md)
 
 Browser requests use `/api`. The same-origin rewrite maps each suffix to Express at `/api/v1`. The `me` route and all resource endpoints require a valid Admin session. Express accepts JSON for requests with bodies. Browser mutations must pass the origin check, including bodyless logout and delete.
 
@@ -30,8 +30,8 @@ Browser requests use `/api`. The same-origin rewrite maps each suffix to Express
 ## Input and list behavior
 
 - **Doctor create:** `name`, `specialization`, `hospital`, `phone`, and `email` are required. Trim strings, normalize email, preserve display names and phone formatting, and set timestamps server-side.
-- **Patient create:** `name`, integer `age` from 0 to 120, `gender`, `phone`, and `condition` are required. `email` and `notes` are optional. `status` defaults to `Active`. Global create also requires `doctorId`. Use genders `male`, `female`, `other`, and statuses `Active`, `Under observation`, `Discharged`. Use the condition enum in [design §8.5](../../frontend/docs/DESIGN.md#85-patients-patients). Bound `notes` to 500 characters. `PATCH` accepts `null` to clear `email` or `notes`. Omitted fields retain their value. Apply input length limits in shared schemas and recompute normalized search values when source fields change.
-- **Common list params:** `q`, `page` (default `1`), `pageSize` (default `10`, max `50`), `sort` (default `createdAt.desc`), `from`, and `to`. Page and size must be positive integers with `(page - 1) * pageSize ≤ 10000`. Accept `field.asc` or `field.desc`. Doctors support `name`, `specialization`, `hospital`, `patients`, `createdAt`. Patients support `name`, `age`, `condition`, `status`, `createdAt`. Add `_id` as a stable tie-breaker. Return an empty `data` array for a valid page beyond the current result set.
+- **Patient create:** `name`, integer `age` from 0 to 120, `gender`, `phone`, and `condition` are required. `email` and `notes` are optional. `status` defaults to `Active`. Global create also requires `doctorId`. Use genders `male`, `female`, `other`, and statuses `Active`, `Under observation`, `Discharged`. Use the condition enum in [design §8.5](https://github.com/Mueem-Nahid/doctors-tracker-frontend/blob/main/docs/DESIGN.md#85-patients-patients). Bound `notes` to 500 characters. `PATCH` accepts `null` to clear `email` or `notes`. Omitted fields retain their value. Apply input length limits in shared schemas and recompute normalized search values when source fields change.
+- **Common list params.** `q`, `page` (default `1`), `pageSize` (default `10`, max `50`), `sort` (default `createdAt.desc`), `from`, and `to`. Page and size must be positive integers. Accept `field.asc` or `field.desc`. Doctors support `name`, `specialization`, `hospital`, `patients`, `createdAt`. Patients support `name`, `age`, `condition`, `status`, `createdAt`. Add `_id` as a stable tie-breaker. Return an empty `data` array for a valid page beyond the current result set.
 - **Search:** `q` matches a literal case-insensitive prefix of doctor name, hospital, email, or phone, and patient name, email, or phone. Normalize both search and stored values. A phone-shaped query uses the digits-only prefix. Use a trimmed maximum of 100 characters and treat a blank search as omitted.
 - **Facets:** Doctors accept `specialization` and `hospital`. Patients accept `condition`, `status`, and, on the global list, `doctorId`. The nested list rejects a query-string `doctorId` so the URL path is the sole scope. Serialize multiple values as a comma-delimited value for enum/ID facets. Serialize free-text hospital and specialization selections as repeated keys so names containing commas survive round trips. Use OR within each facet and AND between facets. Cap at 10 selections per facet. Match free-text facets on normalized equality.
 - **Dates:** `from` and `to` are inclusive reporting dates (`YYYY-MM-DD`) on `createdAt`. Convert them to a UTC interval from the start of `from` through the start of the day after `to`, using `REPORTING_TIME_ZONE`. Either bound can be omitted. Validate calendar dates and reject a reversed range. No separate admission date is required for v1.
@@ -39,8 +39,10 @@ Browser requests use `/api`. The same-origin rewrite maps each suffix to Express
 
 ```json
 {
-  "data": [],
-  "meta": { "page": 1, "pageSize": 10, "total": 0, "pageCount": 0 }
+  "data": {
+    "data": [],
+    "meta": { "page": 1, "pageSize": 10, "total": 0, "pageCount": 0 }
+  }
 }
 ```
 

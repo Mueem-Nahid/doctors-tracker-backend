@@ -1,6 +1,6 @@
 # Doctor Tracker backend architecture
 
-[Delivery plan](../../docs/IMPLEMENTATION_PLAN.md) · [REST contract](API_CONTRACT.md) · [Frontend plan](../../frontend/docs/IMPLEMENTATION_PLAN.md)
+[REST contract](API_CONTRACT.md) · [Frontend plan](https://github.com/Mueem-Nahid/doctors-tracker-frontend/blob/main/docs/IMPLEMENTATION_PLAN.md)
 
 ## Runtime and module boundaries
 
@@ -70,7 +70,7 @@ Validate inputs into allow-listed query objects before creating MongoDB filters.
 
 ## List queries and indexes
 
-Use a single normalized filter builder per resource for `find` and `countDocuments`. Use lean reads with explicit projections, and derive joins after pagination where the sort allows it. Append `_id` in the same direction as the main sort for deterministic ordering. Cap `pageSize` at 50 and the offset at 10,000. Pages and totals are separate reads and can briefly differ during concurrent writes. Retain numbered pages for v1 and measure deep offsets before introducing cursor pagination. [MongoDB ESR guideline](https://www.mongodb.com/docs/manual/tutorial/equality-sort-range-guideline/) · [MongoDB explain](https://www.mongodb.com/docs/manual/reference/method/cursor.explain/)
+Use one filter builder per resource for `find` and `countDocuments`. Use lean reads with explicit projections, and derive joins after pagination where the sort allows it. Append `_id` in the same direction as the main sort for deterministic ordering. Numbered pages can reach the full result set with up to 50 rows per page. Pages and totals are separate reads and can briefly differ during concurrent writes. Deep offsets still require scanning earlier results. [MongoDB ESR guideline](https://www.mongodb.com/docs/manual/tutorial/equality-sort-range-guideline/) · [MongoDB explain](https://www.mongodb.com/docs/manual/reference/method/cursor.explain/)
 
 | Query shape | Starting index or approach |
 | --- | --- |
@@ -79,7 +79,7 @@ Use a single normalized filter builder per resource for `find` and `countDocumen
 | Doctor specialization or hospital + default sort | One `{ facetKey: 1, createdAt: -1, _id: -1 }` index per facet key. Use normalized keys and return display labels from the metadata endpoint. |
 | Patient list under a doctor, with or without condition | `{ doctorId: 1, createdAt: -1, _id: -1 }` and `{ doctorId: 1, condition: 1, createdAt: -1, _id: -1 }` |
 | Global patient condition or status + default sort | `{ condition: 1, createdAt: -1, _id: -1 }` and `{ status: 1, createdAt: -1, _id: -1 }` |
-| Doctor search by name, hospital, email or phone and patient search by name, email or phone | Escaped, case-sensitive anchored prefixes on normalized fields (`nameLower`, `hospitalKey`, `email`, `phoneDigits` as applicable). Use single-field indexes on search fields where existing index prefixes are insufficient. Normalize phone inputs to digits. Verify `$or` plans and blocking sorts with realistic terms. |
+| Doctor and patient search | Doctor text search uses case-insensitive prefixes. Patient name and email search use lowercased, escaped prefixes on indexed `nameSearch` and `email` fields. Both searches normalize phone inputs to digits and query `phoneSearch`. Verify `$or` plans and blocking sorts with realistic terms. |
 | Doctor list or detail with counts | For default doctor pages, group patient counts for visible doctor IDs with one read. For `sort=patients.*`, match doctors first, aggregate counts before sort and page, and treat this as a separately measured query path. Include doctors with zero patients. |
 | Patient list with doctor names | Batch-fetch names for the doctor IDs on the page via the public lookup or a projected join. |
 

@@ -48,15 +48,17 @@ async function create(input: DoctorInput) {
 async function list(query: DoctorListQuery) {
   const filter = filterFor(query);
   const offset = (query.page - 1) * query.pageSize;
+  if (query.sort.startsWith("patients.")) {
+    const [total, rows] = await Promise.all([
+      DoctorModel.countDocuments(filter),
+      patientCountSortedPage(filter, query, offset),
+    ]);
+    return { rows: rows.map((row) => ({ ...row, _id: row._id.toString() })), total };
+  }
+
   const [total, rows] = await Promise.all([
     DoctorModel.countDocuments(filter),
-    query.sort.startsWith("patients.")
-      ? patientCountSortedPage(filter, query, offset)
-      : DoctorModel.find(filter)
-          .sort(sortFor(query.sort))
-          .skip(offset)
-          .limit(query.pageSize)
-          .lean(),
+    DoctorModel.find(filter).sort(sortFor(query.sort)).skip(offset).limit(query.pageSize).lean(),
   ]);
   const ids = rows.map((row) => row._id);
   const counts = await PatientModel.aggregate<{ _id: mongoose.Types.ObjectId; count: number }>([
@@ -80,23 +82,25 @@ async function patientCountSortedPage(
   offset: number,
 ) {
   const direction = query.sort === "patients.asc" ? 1 : -1;
-  const rows = await DoctorModel.aggregate([
+  return DoctorModel.aggregate<
+    DoctorRecord & { _id: mongoose.Types.ObjectId; patientCount: number }
+  >([
     { $match: filter },
     {
       $lookup: {
         from: PatientModel.collection.name,
         localField: "_id",
         foreignField: "doctorId",
-        as: "patients",
+        pipeline: [{ $count: "value" }],
+        as: "patientCounts",
       },
     },
-    { $addFields: { patientCount: { $size: "$patients" } } },
+    { $addFields: { patientCount: { $ifNull: [{ $first: "$patientCounts.value" }, 0] } } },
     { $sort: { patientCount: direction, _id: direction } },
     { $skip: offset },
     { $limit: query.pageSize },
-    { $project: { patients: 0 } },
+    { $project: { patientCounts: 0 } },
   ]);
-  return rows;
 }
 
 async function findById(id: string) {

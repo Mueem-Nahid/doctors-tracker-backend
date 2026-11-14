@@ -25,7 +25,7 @@ function containsBlockingSort(value: unknown): boolean {
 async function measureQueries(): Promise<void> {
   await mongoose.connect(config.MONGODB_URI);
   const firstDoctor = await DoctorModel.findOne().select("_id").lean();
-  const prefixPattern = /^dashboard demo patient/i;
+  const prefixPattern = /^dashboard demo patient/;
   const queryPlans: Array<{ name: string; explain: Promise<ExplainResult> }> = [
     {
       name: "doctor-default-page",
@@ -50,7 +50,9 @@ async function measureQueries(): Promise<void> {
     },
     {
       name: "patient-prefix-search",
-      explain: PatientModel.find({ $or: [{ name: prefixPattern }, { email: prefixPattern }] })
+      explain: PatientModel.find({
+        $or: [{ nameSearch: prefixPattern }, { email: prefixPattern }],
+      })
         .sort({ createdAt: -1, _id: -1 })
         .limit(10)
         .explain("executionStats") as Promise<ExplainResult>,
@@ -74,10 +76,11 @@ async function measureQueries(): Promise<void> {
             from: PatientModel.collection.name,
             localField: "_id",
             foreignField: "doctorId",
-            as: "patients",
+            pipeline: [{ $count: "value" }],
+            as: "patientCounts",
           },
         },
-        { $addFields: { patientCount: { $size: "$patients" } } },
+        { $addFields: { patientCount: { $ifNull: [{ $first: "$patientCounts.value" }, 0] } } },
         { $sort: { patientCount: -1, _id: -1 } },
         { $limit: 10 },
       ]).explain("executionStats") as Promise<ExplainResult>,

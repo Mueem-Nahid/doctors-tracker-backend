@@ -12,16 +12,7 @@ export const paginationQuerySchema = z
     page: z.coerce.number().int().min(1).default(1),
     pageSize: z.coerce.number().int().min(1).max(50).default(10),
   })
-  .strict()
-  .superRefine(({ page, pageSize }, context) => {
-    if ((page - 1) * pageSize > 10_000) {
-      context.addIssue({
-        code: "custom",
-        path: ["page"],
-        message: "Page offset cannot exceed 10,000",
-      });
-    }
-  });
+  .strict();
 
 const dateQuerySchema = z.iso.date();
 const repeatedTextFacetSchema = z.preprocess(
@@ -94,13 +85,6 @@ export const doctorListQuerySchema = z
         code: "custom",
         path: ["to"],
         message: "End date must be on or after start date",
-      });
-    }
-    if ((query.page - 1) * query.pageSize > 10_000) {
-      context.addIssue({
-        code: "custom",
-        path: ["page"],
-        message: "Page offset cannot exceed 10,000",
       });
     }
   });
@@ -205,13 +189,6 @@ export const patientListQuerySchema = z
         message: "End date must be on or after start date",
       });
     }
-    if ((query.page - 1) * query.pageSize > 10_000) {
-      context.addIssue({
-        code: "custom",
-        path: ["page"],
-        message: "Page offset cannot exceed 10,000",
-      });
-    }
   });
 
 export const globalPatientListQuerySchema = patientListQuerySchema
@@ -228,21 +205,7 @@ export const globalPatientListQuerySchema = patientListQuerySchema
       z.array(objectIdSchema).max(10),
     ),
   })
-  .strict()
-  .superRefine((query, context) => {
-    if (query.from && query.to && query.from > query.to)
-      context.addIssue({
-        code: "custom",
-        path: ["to"],
-        message: "End date must be on or after start date",
-      });
-    if ((query.page - 1) * query.pageSize > 10_000)
-      context.addIssue({
-        code: "custom",
-        path: ["page"],
-        message: "Page offset cannot exceed 10,000",
-      });
-  });
+  .strict();
 
 export const globalPatientInputSchema = patientInputSchema
   .extend({ doctorId: objectIdSchema })

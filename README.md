@@ -4,6 +4,8 @@
 
 The Doctor Tracker backend is a standalone Express 5 REST API for the secure administration of doctors, patients, and clinic activity. It owns Admin authentication, request validation, patient assignment rules, MongoDB persistence, indexed list queries, and dashboard aggregation. The separate Next.js frontend reaches it through a same-origin rewrite.
 
+Companion repository [Doctor Tracker frontend](https://github.com/Mueem-Nahid/doctors-tracker-frontend).
+
 ## Responsibilities and API
 
 - Admin login, current-session checks, logout, and session revocation.
@@ -41,22 +43,21 @@ The API is a modular monolith. `auth`, `doctors`, `patients`, and `dashboard` ow
 
 ## Local setup
 
-Use Node.js 24 LTS, npm, and a reachable MongoDB 7 instance or Atlas cluster. From the workspace root:
+Use Node.js 24 LTS, npm, and a reachable MongoDB 7 instance or Atlas cluster. From this repository's root, install dependencies and copy the sample configuration.
 
 ```powershell
-Copy-Item backend/.env.example backend/.env
-Copy-Item frontend/.env.example frontend/.env.local
 npm ci
+Copy-Item .env.example .env
 ```
 
-Set `MONGODB_URI` in `backend/.env`. Set `PUBLIC_APP_ORIGIN` to the exact browser origin, and provide a unique `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` for the one-time provisioning step. The example file contains placeholders, not usable credentials.
+Set `MONGODB_URI` in `.env`. Set `PUBLIC_APP_ORIGIN` to the exact browser origin, and provide a unique `ADMIN_EMAIL`, `ADMIN_PASSWORD`, and `ADMIN_NAME` for the one-time provisioning step. The example file contains placeholders, not usable credentials.
 
-Deploy declared indexes, provision an Admin, and optionally insert the synthetic dashboard dataset:
+Deploy the declared indexes, provision an Admin, and optionally seed synthetic data.
 
 ```powershell
-npm run indexes:deploy -w @doctor-tracker/backend
-npm run admin:provision -w @doctor-tracker/backend
-npm run dashboard:seed -w @doctor-tracker/backend
+npm run indexes:deploy
+npm run admin:provision
+npm run dashboard:seed
 ```
 
 The dashboard seed is repeatable. It creates 500 marked demo doctors and 30,000 synthetic patients with uneven workloads and deterministic pseudorandom timestamps from January 1, 2025 through the time the seed runs. The first and last patient records anchor that date range. Every demo doctor receives at least 15 patients; larger workloads taper deterministically across the directory. On a subsequent run it removes only those demo doctors and their assigned patients before recreating the data.
@@ -64,18 +65,18 @@ The dashboard seed is repeatable. It creates 500 marked demo doctors and 30,000 
 To clear application data while preserving Admin accounts, run this destructive command with an explicit confirmation matching the database name in `MONGODB_URI`:
 
 ```powershell
-npm run data:clear -w @doctor-tracker/backend -- --confirm doctor_tracker
+npm run data:clear -- --confirm doctor_tracker
 ```
 
 Replace `doctor_tracker` with the actual database name. The command deletes all doctors, patients, and sessions in that database, leaves user/Admin accounts intact, and refuses to run when `NODE_ENV=production`. Clearing sessions signs out all Admins. It does not run automatically during setup or seeding.
 
-Run both applications from the workspace root with `npm run dev`; the API listens on port `4000` by default. To run only the API, use:
+Start the API from this repository's root.
 
 ```powershell
-npm run dev -w @doctor-tracker/backend
+npm run dev
 ```
 
-The frontend server origin is configured by `BACKEND_ORIGIN` in `frontend/.env.local`. In local development it defaults to `http://127.0.0.1:4000`.
+The API listens on port `4000` by default. Start the Next.js app separately using the [frontend setup guide](https://github.com/Mueem-Nahid/doctors-tracker-frontend#local-setup).
 
 ## Configuration
 
@@ -98,20 +99,20 @@ The frontend’s server-only `BACKEND_ORIGIN` must point to this API and must no
 Create the indexes declared by the Mongoose models with:
 
 ```powershell
-npm run indexes:deploy -w @doctor-tracker/backend
+npm run indexes:deploy
 ```
 
 After loading the synthetic dataset, capture `explain("executionStats")` results and a dashboard summary latency sample:
 
 ```powershell
-npm run query:measure -w @doctor-tracker/backend
+npm run query:measure
 ```
 
 The output records dataset size, examined keys/documents, returned rows, blocking-sort presence, and `30d` dashboard summary latency. Measurements are environment- and dataset-dependent; no numbers are claimed here until captured against a reachable MongoDB instance. See [backend architecture](docs/ARCHITECTURE.md) for expected query shapes.
 
 ## Verification
 
-From the workspace root:
+From this repository's root, run the backend checks.
 
 ```powershell
 npm run lint
@@ -120,20 +121,20 @@ npm run build
 npm run format:check
 ```
 
-The API integration suite requires `MONGODB_TEST_URI` pointing to the dedicated database named exactly `doctor_tracker_test`. It drops that database before and after the run and does not fall back to `backend/.env`:
+The API workflow test requires `MONGODB_TEST_URI` pointing to a disposable database named exactly `doctor_tracker_test`. It drops that database before and after the run. The pagination validation tests also run without MongoDB.
 
 ```powershell
 $env:MONGODB_TEST_URI = "mongodb://127.0.0.1:27017/doctor_tracker_test"
 npm run test:integration
 ```
 
-Only use a disposable test database. The test workflow covers unauthenticated access, invalid credentials, duplicate and concurrent doctor creation, scoped delete behavior, patient list secrecy, reassignment, dashboard totals, deletion, and session revocation.
+The API workflow covers authentication, duplicate and concurrent doctor creation, patient search and pagination, sorting doctors by patient count, scoped deletion, reassignment, dashboard totals, and session revocation.
 
 ## Health checks and deployment
 
 - `GET /api/v1/health/live` reports that the process is running.
 - `GET /api/v1/health/ready` returns readiness based on MongoDB connectivity.
 
-Run Express behind the same browser-visible HTTPS origin as Next.js. Configure `PUBLIC_APP_ORIGIN`, server-only `BACKEND_ORIGIN`, `TRUST_PROXY_HOPS`, and a least-privileged MongoDB account for the actual topology. Verify cookie set/forward/clear behavior, origin checks, no-store headers, rate limiting, and both health endpoints through the real ingress. No deployment target or credentials are configured in this workspace.
+Deploy this repository as an Express service with `npm run build` and `npm start`. Requests from browsers reach Express through the Next.js HTTPS origin. Configure `PUBLIC_APP_ORIGIN`, server-only `BACKEND_ORIGIN`, `TRUST_PROXY_HOPS`, and a least-privileged MongoDB account for the actual topology. Verify cookie set/forward/clear behavior, origin checks, no-store headers, rate limiting, and both health endpoints through the real ingress.
 
-See the [frontend README](../frontend/README.md) for the client setup and visual-evidence checklist, and the [full-stack assignment](../docs/Fullstack_Task_Requirment.md) for submission requirements.
+See the [frontend README](https://github.com/Mueem-Nahid/doctors-tracker-frontend) for the client setup and screenshots.

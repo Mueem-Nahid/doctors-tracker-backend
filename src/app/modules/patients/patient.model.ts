@@ -23,9 +23,13 @@ const patientSchema = new Schema(
   { timestamps: true },
 );
 
+patientSchema.index({ createdAt: -1, _id: -1 });
+patientSchema.index({ condition: 1, createdAt: -1, _id: -1 });
+patientSchema.index({ status: 1, createdAt: -1, _id: -1 });
 patientSchema.index({ doctorId: 1, createdAt: -1, _id: -1 });
-patientSchema.index({ doctorId: 1, condition: 1, createdAt: -1 });
+patientSchema.index({ doctorId: 1, condition: 1, createdAt: -1, _id: -1 });
 patientSchema.index({ nameSearch: 1 });
+patientSchema.index({ email: 1 });
 
 export type PatientRecord = InferSchemaType<typeof patientSchema>;
 export const PatientModel =

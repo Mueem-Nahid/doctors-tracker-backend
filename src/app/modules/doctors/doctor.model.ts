@@ -16,8 +16,9 @@ const doctorSchema = new Schema(
 );
 
 doctorSchema.index({ name: 1, createdAt: -1 });
-doctorSchema.index({ specializationNormalized: 1, createdAt: -1 });
-doctorSchema.index({ hospitalNormalized: 1, createdAt: -1 });
+doctorSchema.index({ createdAt: -1, _id: -1 });
+doctorSchema.index({ specializationNormalized: 1, createdAt: -1, _id: -1 });
+doctorSchema.index({ hospitalNormalized: 1, createdAt: -1, _id: -1 });
 doctorSchema.index({ email: 1 }, { unique: true });
 
 export type DoctorRecord = InferSchemaType<typeof doctorSchema>;

@@ -19,10 +19,10 @@ function filterFor(
   else if ("doctorId" in query && query.doctorId.length)
     filter.doctorId = { $in: query.doctorId.map((id) => new mongoose.Types.ObjectId(id)) };
   if (query.q) {
-    const prefix = new RegExp(`^${escapeRegex(query.q)}`, "i");
+    const prefix = new RegExp(`^${escapeRegex(query.q.toLowerCase())}`);
     const digits = /^[+\d\s().-]+$/.test(query.q) ? toPhoneDigits(query.q) : "";
     filter.$or = [
-      { name: prefix },
+      { nameSearch: prefix },
       { email: prefix },
       ...(digits ? [{ phoneSearch: { $regex: `^${escapeRegex(digits)}` } }] : []),
     ];
@@ -54,11 +54,12 @@ async function create(doctorId: string, input: Record<string, unknown>) {
 
 async function list(doctorId: string, query: PatientListQuery) {
   const filter = filterFor(query, doctorId);
+  const offset = (query.page - 1) * query.pageSize;
   const [rows, total] = await Promise.all([
     PatientModel.find(filter)
       .select("-notes -nameSearch -phoneSearch")
       .sort(sortFor(query.sort))
-      .skip((query.page - 1) * query.pageSize)
+      .skip(offset)
       .limit(query.pageSize)
       .lean(),
     PatientModel.countDocuments(filter),
@@ -77,15 +78,16 @@ async function list(doctorId: string, query: PatientListQuery) {
 
 async function listGlobal(query: GlobalPatientListQuery) {
   const filter = filterFor(query);
-  const [rows, total] = await Promise.all([
-    PatientModel.find(filter)
-      .select("-notes -nameSearch -phoneSearch")
-      .sort(sortFor(query.sort))
-      .skip((query.page - 1) * query.pageSize)
-      .limit(query.pageSize)
-      .lean(),
-    PatientModel.countDocuments(filter),
-  ]);
+  const total = await PatientModel.countDocuments(filter);
+  const offset = (query.page - 1) * query.pageSize;
+  if (offset >= total) return { rows: [], total };
+
+  const rows = await PatientModel.find(filter)
+    .select("-notes -nameSearch -phoneSearch")
+    .sort(sortFor(query.sort))
+    .skip(offset)
+    .limit(query.pageSize)
+    .lean();
   const doctorIds = [...new Set(rows.map((row) => row.doctorId.toString()))];
   const doctors = await DoctorModel.find({ _id: { $in: doctorIds } })
     .select("name")

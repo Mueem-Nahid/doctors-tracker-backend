@@ -1,6 +1,6 @@
 # API contract fixtures
 
-These fixtures are shared review examples for frontend and backend work. Dynamic timestamps and record IDs use fixed example values. Resource IDs are BSON ObjectId strings.
+These fixtures show the payload inside the HTTP response's outer `data` envelope. Dynamic timestamps and record IDs use fixed example values. Resource IDs are BSON ObjectId strings.
 
 ## Empty dashboard
 
